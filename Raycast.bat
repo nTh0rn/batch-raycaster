@@ -71,16 +71,18 @@ for /l %%x in (1, 1, 30) do (
 	set /a high=!low!+!high!
 	set /a high=!high!/2
 )
+::Divide by the number of vertical detail available (Technically there's 33)
 set /a scalediv=!high!/30
 echo !scalediv! !scale!
 
-::Read map.txt
+::Read room.txt
 :read_map
 	@echo off
 	set /a y=-1
 	set "File=%cd%\room.txt"
 	set /a count=0
-
+	
+	::Read file line by line
 	for /F "tokens=* delims=" %%a in ('Type "%File%"') do (
 		Set /a count+=1
 		Set "output[!count!]=%%a"
@@ -89,20 +91,22 @@ echo !scalediv! !scale!
 		Call :Action "!output[%%i]!"
 	)
 	goto input
+	
+	::Read line character by character
 	:Action
 	set l=%1
 	set l=%l:"=%
 	set /a x=0
 	set /a y=%y%+1
 	SET strterm=LAST
-	:: read first line of input file
 	SET mytext=!l!
-	:: add string terminator to input
 	SET tmp=!mytext!!strterm!
 	:loop
 		SET char=!tmp:~0,1!
 		SET tmp=!tmp:~1!
+		::Store map
 		set mapx%x%y%y%=!char!
+		::Store player position
 		if "!char!"=="P" (
 			set pcord=x%x%y%y%
 			set /a px=!x!
@@ -155,16 +159,15 @@ goto input
 	echo.
 	call :print_map
 	echo.
-	echo z - Turn left 30 degrees
-	echo x - Turn right 30 degrees
-	echo Z (uppercase) - Turn left 90 degrees
-	echo X (uppercase) - Turn right 90 degrees
+	echo z - Turn left 15 degrees
+	echo x - Turn right 15 degrees
+	echo Z - Turn left 30 degrees
+	echo X - Turn right 30 degrees
+	echo ZZ - Turn left 90 degrees
+	echo XX - Turn right 90 degrees
 	echo.
 	if NOT "%first_start%"=="true" (
 		set /p move=?^>
-	) else (
-	cls
-	echo Loading First Frame . . .
 	)
 	set mapx!px!y!py!=·
 	if "%move%"=="w" (
@@ -176,12 +179,16 @@ goto input
 	)else if "%move%"=="d" (
 		set /a px=!px!+1
 	)else if "%move%"=="x" (
-		set /a start_angle=!start_angle!-30
+		set /a start_angle=!start_angle!-15
 	)else if "%move%"=="z" (
-		set /a start_angle=!start_angle!+30
+		set /a start_angle=!start_angle!+15
 	)else if "%move%"=="X" (
-		set /a start_angle=!start_angle!-90
+		set /a start_angle=!start_angle!-30
 	)else if "%move%"=="Z" (
+		set /a start_angle=!start_angle!+30
+	)else if "%move%"=="XX" (
+		set /a start_angle=!start_angle!-90
+	)else if "%move%"=="ZZ" (
 		set /a start_angle=!start_angle!+90
 	)
 	set mapx!px!y!py!=P
@@ -192,6 +199,8 @@ goto input
 		set start_angle=!start_angle!-360
 	)
 	set pcord=x!px!y!py!
+	
+	echo Loading Frame . . . 
 	call :find_mid
 	call :search
 	if "%first_start%"=="true" (
