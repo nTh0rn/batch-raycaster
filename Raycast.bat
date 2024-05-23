@@ -77,7 +77,6 @@ echo !scalediv! !scale!
 
 ::Read room.txt
 :read_map
-	@echo off
 	set /a y=-1
 	set "File=%cd%\room.txt"
 	set /a count=0
@@ -142,11 +141,17 @@ goto input
 	
 :print_screen
 	set screen=
+	set "Pattern=·"
+	set "Replace= "
 	for /l %%y in (1, 1, !height!) do (
 		for /l %%x in (1, 1, !width!) do (
 			set screen=!screen!!x%%xy%%y!!x%%xy%%y!
 		)
-		echo !screen!
+		if NOT "!screen!"=="                                                                                          " (
+			echo: !screen:%Pattern%=%Replace%!
+		) else (
+			echo.
+		)
 		set screen=
 
 	)
@@ -158,17 +163,13 @@ goto input
 	call :print_screen
 	echo.
 	call :print_map
-	echo.
-	echo z - Turn left 15 degrees
-	echo x - Turn right 15 degrees
-	echo Z - Turn left 30 degrees
-	echo X - Turn right 30 degrees
-	echo ZZ - Turn left 90 degrees
-	echo XX - Turn right 90 degrees
-	echo.
+
 	if NOT "%first_start%"=="true" (
 		set /p move=?^>
+	) else (
+		set move=filler
 	)
+	
 	set mapx!px!y!py!=·
 	if "%move%"=="w" (
 		set /a py=!py!-1
@@ -178,19 +179,18 @@ goto input
 		set /a py=!py!+1
 	)else if "%move%"=="d" (
 		set /a px=!px!+1
-	)else if "%move%"=="x" (
-		set /a start_angle=!start_angle!-15
-	)else if "%move%"=="z" (
-		set /a start_angle=!start_angle!+15
-	)else if "%move%"=="X" (
-		set /a start_angle=!start_angle!-30
-	)else if "%move%"=="Z" (
-		set /a start_angle=!start_angle!+30
-	)else if "%move%"=="XX" (
-		set /a start_angle=!start_angle!-90
-	)else if "%move%"=="ZZ" (
-		set /a start_angle=!start_angle!+90
 	)
+
+	if NOT "%move:x=%"=="%move%" (
+		set /a move_amt=%move:x=%
+		set /a start_angle=!start_angle!-!move_amt!
+	)
+
+	if NOT "%move:z=%"=="%move%" (
+		set /a move_amt=%move:z=%
+		set /a start_angle=!start_angle!+!move_amt!
+	)
+
 	set mapx!px!y!py!=P
 	if !start_angle! LSS 0 (
 		set start_angle=360+!start_angle!
@@ -507,6 +507,8 @@ goto input
 
 	if !corner_hit! LSS 2 (
 		set view=!view:#=%walltype%!
+	) else (
+		set view=!view:#=█!
 	)
 
 	for /l %%y in (1, 1, !height!) do (
