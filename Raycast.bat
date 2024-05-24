@@ -1,6 +1,9 @@
 @echo off
-setlocal EnableDelayedExpansion
+setlocal enableextensions EnableDelayedExpansion
 chcp 65001
+cls
+::Allow overprinting on same line for loading bars, etc
+for /f %%a in ('copy /Z "%~dpf0" nul') do set "CR=%%a"
 
 set first_start=true
 
@@ -52,6 +55,7 @@ set d10=A···—######################—···B
  set d1=A##############################B
  
  ::Generate coordinates
+ <nul set /p"=Generating Coordinates . . . !CR!"
 for /l %%y in (1, 1, !height!) do (
 	for /l %%x in (1, 1, !width!) do (
 		set x%%xy%%y=·
@@ -73,10 +77,10 @@ for /l %%x in (1, 1, 30) do (
 )
 ::Divide by the number of vertical detail available (Technically there's 33)
 set /a scalediv=!high!/30
-echo !scalediv! !scale!
 
 ::Read room.txt
 :read_map
+	<nul set /p"=Reading map . . .                     !CR!"
 	set /a y=-1
 	set "File=%cd%\room.txt"
 	set /a count=0
@@ -139,19 +143,18 @@ goto input
 	for %%f in (%screen%) do @echo                                         %%f
 	goto :eof
 	
+::Print the screen from the x and y coordinate variables
 :print_screen
 	set screen=
-	set "Pattern=·"
-	set "Replace= "
+	::Used to replace the filler whitespace with true whitespace
+	set "temp_whitespace=·"
+	set "real_whitespace= "
 	for /l %%y in (1, 1, !height!) do (
 		for /l %%x in (1, 1, !width!) do (
 			set screen=!screen!!x%%xy%%y!!x%%xy%%y!
 		)
-		if NOT "!screen!"=="                                                                                          " (
-			echo: !screen:%Pattern%=%Replace%!
-		) else (
-			echo.
-		)
+		::Print the screen row and replace the filler whitespace.
+		echo: !screen:%temp_whitespace%=%real_whitespace%!
 		set screen=
 
 	)
@@ -160,14 +163,13 @@ goto input
 	
 :input
 	cls
-	call :print_screen
-	echo.
-	call :print_map
-
 	if NOT "%first_start%"=="true" (
+		call :print_screen
+		echo.
+		call :print_map
 		set /p move=?^>
 	) else (
-		set move=filler
+		set move=NIL
 	)
 	
 	set mapx!px!y!py!=·
@@ -200,7 +202,7 @@ goto input
 	)
 	set pcord=x!px!y!py!
 	
-	echo Loading Frame . . . 
+	
 	call :find_mid
 	call :search
 	if "%first_start%"=="true" (
@@ -209,94 +211,89 @@ goto input
 	)
 	goto input
 	
-	
 
 ::Find's the vector that denotes the center of the player's FOV, stored in nx and ny
 ::This is used for projection later on.
 :find_mid
-	set /a x=-1
-	set flip=0
-	set /a angle=!start_angle!
-	for /l %%y in (1, 1, 23) do (
-		set /a angle=!angle!-2
-		if !angle! LSS 1 (
-			set /a angle=360+!angle!
-		)
-		if !angle! GTR 360 (
-			set /a angle=!angle!-360
-		)
-		set /a angle_num=!angle!-1
-		set /a angle_num=!angle_num!/45
-		set /a temp_angle=!angle_num!*45
-		set /a temp_angle=!angle!-!temp_angle!
-		set /a temp_angle=!temp_angle!
-		if "!angle_num!"=="0" (
-			set priority=y
-			set /a dir=-1
-			set /a xdir=1
-			set /a ydir=-1
-		) else if "!angle_num!"=="1" (
-			set priority=x
-			set /a dir=1
-			set /a xdir=1
-			set /a ydir=-1
-		) else if "!angle_num!"=="2" (
-			set priority=x
-			set /a dir=-1
-			set /a xdir=-1
-			set /a ydir=-1
-		) else if "!angle_num!"=="3" (
-			set priority=y
-			set /a dir=1
-			set /a xdir=-1
-			set /a ydir=-1
-		) else if "!angle_num!"=="4" (
-			set priority=y
-			set /a dir=-1
-			set /a xdir=-1
-			set /a ydir=1
-		) else if "!angle_num!"=="5" (
-			set priority=x
-			set /a dir=1
-			set /a xdir=-1
-			set /a ydir=1
-		) else if "!angle_num!"=="6" (
-			set priority=x
-			set /a dir=-1
-			set /a xdir=1
-			set /a ydir=1
-		) else if "!angle_num!"=="7" (
-			set priority=y
-			set /a dir=1
-			set /a xdir=1
-			set /a ydir=1
-		)
-		if "!dir!"=="1" (
-			set /a temp_angle-=2
-			set /a temp_angle=45-!temp_angle!
-		) else (
-			set /a temp_angle+=2
-		)
-
-		set /a vx=!px!*!scale!+!scale_half!
-		set /a vy=!py!*!scale!+!scale_half!
-		set /a x=!x!+1
+	<nul set /p"=Finding Center FOV Vector . . .                   !CR!"
+	set /a angle=!start_angle!-44
+	if !angle! LSS 1 (
+		set /a angle=360+!angle!
 	)
+	if !angle! GTR 360 (
+		set /a angle=!angle!-360
+	)
+	set /a octant=!angle!-1
+	set /a octant=!octant!/45
+	set /a oct_angle=!octant!*45
+	set /a oct_angle=!angle!-!oct_angle!
+	set /a oct_angle=!oct_angle!
+	if "!octant!"=="0" (
+		set priority=y
+		set /a dir=-1
+		set /a xdir=1
+		set /a ydir=-1
+	) else if "!octant!"=="1" (
+		set priority=x
+		set /a dir=1
+		set /a xdir=1
+		set /a ydir=-1
+	) else if "!octant!"=="2" (
+		set priority=x
+		set /a dir=-1
+		set /a xdir=-1
+		set /a ydir=-1
+	) else if "!octant!"=="3" (
+		set priority=y
+		set /a dir=1
+		set /a xdir=-1
+		set /a ydir=-1
+	) else if "!octant!"=="4" (
+		set priority=y
+		set /a dir=-1
+		set /a xdir=-1
+		set /a ydir=1
+	) else if "!octant!"=="5" (
+		set priority=x
+		set /a dir=1
+		set /a xdir=-1
+		set /a ydir=1
+	) else if "!octant!"=="6" (
+		set priority=x
+		set /a dir=-1
+		set /a xdir=1
+		set /a ydir=1
+	) else if "!octant!"=="7" (
+		set priority=y
+		set /a dir=1
+		set /a xdir=1
+		set /a ydir=1
+	)
+	if "!dir!"=="1" (
+		set /a oct_angle-=2
+		set /a oct_angle=45-!oct_angle!
+	) else (
+		set /a oct_angle+=2
+	)
+
+	set /a vx=!px!*!scale!+!scale_half!
+	set /a vy=!py!*!scale!+!scale_half!
+	set /a screenx=!screenx!+1
+	
 	if "!priority!"=="x" (
-		set /a dir2=!xdir!*!temp_angle!
+		set /a dir2=!xdir!*!oct_angle!
 		set /a dir3=!ydir!*45
 
 		set /a nx=!dir2!
 		set /a ny=!dir3!
 	) else (
 		set /a dir3=!xdir!*45
-		set /a dir2=!ydir!*!temp_angle!
+		set /a dir2=!ydir!*!oct_angle!
 		set /a nx=!dir3!
 		set /a ny=!dir2!
 	)
-	set /a scale_lvl=!scale!/2
-	set /a tnx=!nx!*!scale_lvl!
-	set /a tny=!ny!*!scale_lvl!
+	set /a tnx=!nx!/2
+	set /a tny=!ny!/2
 	set /a tnx=!tnx!*!tnx!
 	set /a tny=!tny!*!tny!
 	
@@ -308,27 +305,34 @@ goto input
 		set /a high=!low!+!high!
 		set /a high=!high!/2
 	)
-	set /a nh=!high!
-	set /a unscaled_nh=!nh!/!scale_lvl!
-
 	
-	set /a nx=!nx!*!scale!
-	set /a ny=!ny!*!scale!
+	::Final distance of n
+	set /a n_distance=!high!
+
 	goto :eof
 
 ::Does the actual raycasting.
 :search
-	set /a vx=%px%*%scale%+!scale_half!
-	set /a vy=%py%*%scale%+!scale_half!
-	set /a x=-1
-	set flip=0
+	
+::	The ray vector's x and y components
+	set /a vx=!px!*!scale!+!scale_half!
+	set /a vy=!py!*!scale!+!scale_half!
+	
+::	The current vertical-column
+	set /a screenx=-1
+	
+::	Establish the current angle
 	set /a angle=!start_angle!
-	set /a scalediv2=!scale!/2
-	set /a tpx=!px!*!scale!+!scale_half!
-	set /a tpy=!py!*!scale!+!scale_half!
-	set /a tpx=!tpx!+!scalediv2!
-	set /a tpy=!tpy!+!scalediv2!
+
+::	Establish the temporary vector components
+	set /a tvx=!vx!
+	set /a tvy=!vy!
+
+	set loading_bar_amt=#
 	for /l %%y in (1, 1, 46) do (
+		set loading_bar_amt=!loading_bar_amt!#
+		<nul set /p"=|                                               | !CR!"
+		<nul set /p"=|!loading_bar_amt!!CR!"
 		set /a angle=!angle!-2
 		if !angle! LSS 1 (
 			set /a angle=360+!angle!
@@ -336,117 +340,131 @@ goto input
 		if !angle! GTR 360 (
 			set /a angle=360-!angle!
 		)
-		set /a angle_num=!angle!-1
-		set /a angle_num=!angle_num!/45
-		set /a temp_angle=!angle_num!*45
-		set /a temp_angle=!angle!-!temp_angle!
-		set /a temp_angle=!temp_angle!
+::		Define what octant the angle is within
+		set /a octant=!angle!/45
+		set /a oct_angle=!octant!*45
+		set /a oct_angle=!angle!-!oct_angle!
+		set /a oct_angle=!oct_angle!
 
-		if "!angle_num!"=="0" (
+		if "!octant!"=="0" (
 			set priority=y
 			set /a dir=-1
 			set /a xdir=1
 			set /a ydir=-1
-		) else if "!angle_num!"=="1" (
+		) else if "!octant!"=="1" (
 			set priority=x
 			set /a dir=1
 			set /a xdir=1
 			set /a ydir=-1
-		) else if "!angle_num!"=="2" (
+		) else if "!octant!"=="2" (
 			set priority=x
 			set /a dir=-1
 			set /a xdir=-1
 			set /a ydir=-1
-		) else if "!angle_num!"=="3" (
+		) else if "!octant!"=="3" (
 			set priority=y
 			set /a dir=1
 			set /a xdir=-1
 			set /a ydir=-1
-		) else if "!angle_num!"=="4" (
+		) else if "!octant!"=="4" (
 			set priority=y
 			set /a dir=-1
 			set /a xdir=-1
 			set /a ydir=1
-		) else if "!angle_num!"=="5" (
+		) else if "!octant!"=="5" (
 			set priority=x
 			set /a dir=1
 			set /a xdir=-1
 			set /a ydir=1
-		) else if "!angle_num!"=="6" (
+		) else if "!octant!"=="6" (
 			set priority=x
 			set /a dir=-1
 			set /a xdir=1
 			set /a ydir=1
-		) else if "!angle_num!"=="7" (
+		) else if "!octant!"=="7" (
 			set priority=y
 			set /a dir=1
 			set /a xdir=1
 			set /a ydir=1
 		)
+		
 		if "!dir!"=="1" (
-			set /a temp_angle-=2
-			set /a temp_angle=45-!temp_angle!
+			set /a oct_angle-=2
+			set /a oct_angle=45-!oct_angle!
 		) else (
-			set /a temp_angle+=2
+			set /a oct_angle+=2
 		)
 
-		set /a vx=!tpx!
-		set /a vy=!tpy!
-		set /a x=!x!+1
+		set /a vx=!tvx!
+		set /a vy=!tvy!
+		set /a screenx=!screenx!+1
 		call :v_search
 		
 	)
 	goto :eof
 		:v_search
+			set /a mvmt_scale=1
+			set /a tvx=!vx!
+			set /a tvy=!vy!
 			if "!priority!"=="x" (
-				set /a hx=!xdir!*!temp_angle!
+				set /a hx=!xdir!*!oct_angle!
 				set /a hy=!ydir!*45
-
+				
 				set /a vx=!vx!+!hx!
 				set /a vy=!vy!+!hy!
 			) else (
-				set /a hy=!ydir!*!temp_angle!
+				set /a hy=!ydir!*!oct_angle!
 				set /a hx=!xdir!*45
 				set /a vx=!vx!+!hx!
 				set /a vy=!vy!+!hy!
 			)
+			
+			
 			set /a checkx=!vx!/!scale!
 			set /a checky=!vy!/!scale!
 			
 			set /a corner_hit=0
-			set /a cornercheckx1=!vx!-!corner_thresh!
-			set /a cornercheckx2=!vx!+!corner_thresh!
-			set /a cornerchecky1=!vy!-!corner_thresh!
-			set /a cornerchecky2=!vy!+!corner_thresh!
+			set /a ccx_low=!vx!-!corner_thresh!
+			set /a ccx_high=!vx!+!corner_thresh!
+			set /a ccy_low=!vy!-!corner_thresh!
+			set /a ccy_high=!vy!+!corner_thresh!
 			
-			set /a cornercheckx1=!cornercheckx1!/!scale!
-			set /a cornercheckx2=!cornercheckx2!/!scale!
-			set /a cornerchecky1=!cornerchecky1!/!scale!
-			set /a cornerchecky2=!cornerchecky2!/!scale!
+			set /a ccx_low=!ccx_low!/!scale!
+			set /a ccx_high=!ccx_high!/!scale!
+			set /a ccy_low=!ccy_low!/!scale!
+			set /a ccy_high=!ccy_high!/!scale!
 			
-
-			if not "!mapx%cornercheckx1%y%checky%!"=="!mapx%checkx%y%checky%!" (
+::			Check whether the current vector + or - the corner threshhold is defined
+::			as a different cell and, therefore, near the edges of the cell. This can
+::			only ever be the case for 1 of the x checks and 1 of the y checks, but if
+::			it is the case for both, then the ray must be near a corner. If this occurs
+::			then corner_hit will get added to twice.
+			if not "!mapx%ccx_low%y%checky%!"=="!mapx%checkx%y%checky%!" (
 				set /a corner_hit=!corner_hit!+1
 			)
-			if not "!mapx%cornercheckx2%y%checky%!"=="!mapx%checkx%y%checky%!" (
+			if not "!mapx%ccx_high%y%checky%!"=="!mapx%checkx%y%checky%!" (
 				set /a corner_hit=!corner_hit!+1
 			)
-			if not "!mapx%checkx%y%cornerchecky1%!"=="!mapx%checkx%y%checky%!" (
+			if not "!mapx%checkx%y%ccy_low%!"=="!mapx%checkx%y%checky%!" (
 				set /a corner_hit=!corner_hit!+1
 			)
-			if not "!mapx%checkx%y%cornerchecky2%!"=="!mapx%checkx%y%checky%!" (
+			if not "!mapx%checkx%y%ccy_high%!"=="!mapx%checkx%y%checky%!" (
 				set /a corner_hit=!corner_hit!+1
 			)
 			if "!vx!" LSS "-1" (
 				echo Player X is out of bounds!
 				pause
 			)
+			
 			if "!mapx%checkx%y%checky%!"=="·" (
 				set mapx%checkx%y%checky%=#
+				call :test_jump
 				goto :v_search
 			) else if "!mapx%checkx%y%checky%!"=="P" (
+				call :test_jump
 				goto :v_search
 			) else if "!mapx%checkx%y%checky%!"=="#" (
+				call :test_jump
 				goto :v_search
 			) else (
 				set walltype=!mapx%checkx%y%checky%!
@@ -454,63 +472,114 @@ goto input
 			)
 		goto :eof
 	
-
-:draw_line
-	::Preparing for projection
-	set /a screenx=!x!
-	set /a wx=!vx!
-	set /a wy=!vy!
-	set /a tpx=!px!*!scale!+!scale_half!
-	set /a tpy=!py!*!scale!+!scale_half!
-	set /a wx=!wx!-!tpx!
-	set /a wy=!wy!-!tpy!
-	if !wx! LSS 0 (
-		set /a wx=!wx!*-1
+	
+:test_jump
+	if %mvmt_scale% GTR !scale! (
+		set /a %mvmt_scale%=!scale!
 	)
-	if !wy! LSS 0 (
-		set /a wy=!wy!*-1
+	set /a jump_x=!mvmt_scale!*!hx!
+	set /a jump_y=!mvmt_scale!*!hy!
+	set /a jump_x=!tvx!+!jump_x!
+	set /a jump_y=!tvy!+!jump_y!
+	
+	set /a check_jump_x=!jump_x!/!scale!
+	set /a check_jump_y=!jump_y!/!scale!
+
+	
+	
+	if "!mapx%check_jump_x%y%check_jump_y%!"=="·" (
+		set blank=
+	) else if "!mapx%check_jump_x%y%check_jump_y%!"=="P" (
+		set blank=
+	) else if "!mapx%check_jump_x%y%check_jump_y%!"=="#" (
+		set blank=
+	) else (
+		set /a mvmt_scale=1
+		goto :eof
 	)
 	
-	set /a d=!nh!
-	set /a wx=!wx!
-	set /a wy=!wy!
-	set /a a1=!wx!*!nx!
+
+	set /a dif=0
+	if not "!checkx!"=="!check_jump_x!" (
+		set /a dif+=1
+	)
+	
+	if not "!checky!"=="!check_jump_y!" (
+		set /a dif+=1
+	)
+	
+	if "!same!"=="0" (
+		set /a mvmt_scale+=5
+		goto test_jump
+	)
+	if !dif! LSS 2 (
+		set /a vx=!jump_x!
+		set /a vy=!jump_y!
+	)
+	
+	goto :eof
+	
+	
+:draw_line
+
+::	The player's scaled x and y coordinates.
+	set /a tvx=!px!*!scale!+!scale_half!
+	set /a tvy=!py!*!scale!+!scale_half!
+	
+::	The distance between the ray's collision point and the player
+	set /a vx=!vx!-!tvx!
+	set /a vy=!vy!-!tvy!
+	
+::	Ensure all terms are positive.
+	if !vx! LSS 0 (
+		set /a vx=!vx!*-1
+	)
+	if !vy! LSS 0 (
+		set /a vy=!vy!*-1
+	)
+	
+::	
+	set /a d=!n_distance!
+
+	set /a dot_x=!vx!*!nx!
 	if !d! LSS 0 (
-		set /a nh=!a1!*-1
+		set /a n_distance=!dot_x!*-1
 	)
-	if !a1! LSS 0 (
-		set /a a1=!a1!*-1
+	if !dot_x! LSS 0 (
+		set /a dot_x=!dot_x!*-1
 	)
-	set /a a2=!wy!*!ny!
-	if !a2! LSS 0 (
-		set /a a2=!a2!*-1
+	set /a dot_y=!vy!*!ny!
+	if !dot_y! LSS 0 (
+		set /a dot_y=!dot_y!*-1
 	)
 
-	set /a a=!a1!+!a2!
-	set /a d=!a!/!d!
+	set /a dot=!dot_x!+!dot_y!
+	set /a d=!dot!/!d!
 
 	set /a h=!height!+3
 	set /a h_scaled=!h!*!scale!
-
-	set /a dd=!h_scaled!/!d!
-	set /a dd=!h!-(!dd!*2)
-
-	if !dd! LSS 1 (
-		set /a dd=1
+	set /a distance=!h_scaled!/!d!
+	set /a distance=!h!-!distance!
+	if !distance! LSS 1 (
+		set /a distance=1
 	)
 	
-	if !dd! GTR !h_scaled! (
-		set /a dd=!h!
+	if !distance! GTR !h_scaled! (
+		set /a distance=!h!
 	)
 
-	set view=!d%dd%!
+::	The vertical column for the distance calculated
+	set view=!d%distance%!
 
+::	Replace wall-characters with the associated character on
+::	the map or with the corner-defining character.
 	if !corner_hit! LSS 2 (
 		set view=!view:#=%walltype%!
 	) else (
 		set view=!view:#=█!
 	)
 
+::	Iterate through the screen and insert this vertical column
 	for /l %%y in (1, 1, !height!) do (
 		set x!screenx!y%%y=!view:~%%y,1!
 	)
