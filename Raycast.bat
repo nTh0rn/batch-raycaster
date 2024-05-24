@@ -80,7 +80,7 @@ set /a scalediv=!high!/30
 
 ::Read room.txt
 :read_map
-	<nul set /p"=Reading map . . .                     !CR!"
+
 	set /a y=-1
 	set "File=%cd%\room.txt"
 	set /a count=0
@@ -162,7 +162,7 @@ goto input
 	
 	
 :input
-	cls
+	::cls
 	if NOT "%first_start%"=="true" (
 		call :print_screen
 		echo.
@@ -206,7 +206,7 @@ goto input
 	call :find_mid
 	call :search
 	if "%first_start%"=="true" (
-	cls
+	::cls
 	set first_start=false
 	)
 	goto input
@@ -215,7 +215,7 @@ goto input
 ::Find's the vector that denotes the center of the player's FOV, stored in nx and ny
 ::This is used for projection later on.
 :find_mid
-	<nul set /p"=Finding Center FOV Vector . . .                   !CR!"
+
 	set /a angle=!start_angle!-44
 	if !angle! LSS 1 (
 		set /a angle=360+!angle!
@@ -330,9 +330,7 @@ goto input
 
 	set loading_bar_amt=#
 	for /l %%y in (1, 1, 46) do (
-		set loading_bar_amt=!loading_bar_amt!#
-		<nul set /p"=|                                               | !CR!"
-		<nul set /p"=|!loading_bar_amt!!CR!"
+	
 		set /a angle=!angle!-2
 		if !angle! LSS 1 (
 			set /a angle=360+!angle!
@@ -398,11 +396,13 @@ goto input
 		set /a vx=!tvx!
 		set /a vy=!tvy!
 		set /a screenx=!screenx!+1
+		echo FUCK 2
 		call :v_search
 		
 	)
 	goto :eof
 		:v_search
+			
 			set /a mvmt_scale=1
 			set /a tvx=!vx!
 			set /a tvy=!vy!
@@ -410,14 +410,58 @@ goto input
 				set /a hx=!xdir!*!oct_angle!
 				set /a hy=!ydir!*45
 				
-				set /a vx=!vx!+!hx!
-				set /a vy=!vy!+!hy!
+				::set /a vx=!vx!+!hx!
+				::set /a vy=!vy!+!hy!
 			) else (
 				set /a hy=!ydir!*!oct_angle!
 				set /a hx=!xdir!*45
-				set /a vx=!vx!+!hx!
-				set /a vy=!vy!+!hy!
+				::set /a vx=!vx!+!hx!
+				::set /a vy=!vy!+!hy!
 			)
+			
+			set /a floor_x=!vx!/!scale!
+			set /a floor_y=!vy!/!scale!
+			
+			set /a frac_x=!floor_x!*!scale!
+			set /a frac_y=!floor_y!*!scale!
+			
+			set /a frac_x=!vx!-!frac_x!
+			set /a frac_y=!vy!-!frac_y!
+			
+			if !hx! GTR 0 (
+				set /a frac_x=!scale!-!frac_x!
+			)
+			if !hy! GTR 0 (
+				set /a frac_y=!scale!-!frac_y!
+			)
+			
+			set /a mult_x=!frac_x!/!hx!
+			set /a mult_y=!frac_y!/!hy!
+			
+			if !mult_x! LSS 0 (
+				set /a mult_x=!mult_x!*-1
+			)
+			
+			if !mult_y! LSS 0 (
+				set /a mult_y=!mult_y!*-1
+			)
+			
+			set /a mult_x+=1
+			set /a mult_y+=1
+			echo !mult_x! !mult_y!
+			if !mult_x! LSS !mult_y! (
+				set /a mult_x=!mult_x!*!hx!
+				set /a mult_y=!mult_x!*!hy!
+			) else (
+				set /a mult_x=!mult_y!*!hx!
+				set /a mult_y=!mult_y!*!hy!
+			)
+			echo !mult_x! !mult_y!
+			
+			
+			set /a vx=!vx!+!mult_x!
+			set /a vy=!vy!+!mult_y!
+			
 			
 			
 			set /a checkx=!vx!/!scale!
@@ -456,15 +500,17 @@ goto input
 				pause
 			)
 			
+			
+			echo KYS
 			if "!mapx%checkx%y%checky%!"=="·" (
+			echo KYS2
 				set mapx%checkx%y%checky%=#
-				call :test_jump
 				goto :v_search
 			) else if "!mapx%checkx%y%checky%!"=="P" (
-				call :test_jump
+			echo KY3
 				goto :v_search
 			) else if "!mapx%checkx%y%checky%!"=="#" (
-				call :test_jump
+			echo KY4
 				goto :v_search
 			) else (
 				set walltype=!mapx%checkx%y%checky%!
@@ -521,7 +567,7 @@ goto input
 	
 	
 :draw_line
-
+	
 ::	The player's scaled x and y coordinates.
 	set /a tvx=!px!*!scale!+!scale_half!
 	set /a tvy=!py!*!scale!+!scale_half!
@@ -567,7 +613,6 @@ goto input
 	if !distance! GTR !h_scaled! (
 		set /a distance=!h!
 	)
-
 ::	The vertical column for the distance calculated
 	set view=!d%distance%!
 
