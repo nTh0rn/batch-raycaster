@@ -1,10 +1,10 @@
 ABCDEFGABC
-A··PA····D
+A··P·····D
 GFC·B·CD·E
 F·····E··F
 E·H·L·FR·G
 D·IJK····A
 C·····G··B
-B·ABCDH·JC
+B·A·C·H·JC
 A·····I··X
 GFEDCBAGFE

@@ -1,0 +1,7 @@
+Controls:
+w - Move north
+a - Move West
+s - Move South
+d - Move East
+x # - Look left # amount of degrees.
+z # - Look Right # amount of degrees.
