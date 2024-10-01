@@ -70,7 +70,7 @@ Designed exclusively for Windows. Functionality within Linux/macOS virtual envir
    3.2 `z #`=aim left, `x #`=aim right, where `#` is the number of degrees to turn.
 
 <b>NOTE:</b>
-Run [`optimized/raycaster_optimized.bat`](https://github.com/nTh0rn/batch-raycaster/blob/master/optimized/raycaster.bat) instead of [`raycaster.bat`](https://github.com/nTh0rn/batch-raycaster/blob/master/raycaster.bat) for greatly increased performance at the cost of unreadable code.
+Run [`optimized/raycaster_optimized.bat`](https://github.com/nTh0rn/batch-raycaster/blob/main/optimized/raycaster_optimized.bat) instead of [`raycaster.bat`](https://github.com/nTh0rn/batch-raycaster/blob/master/raycaster.bat) for greatly increased performance at the cost of unreadable code.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
