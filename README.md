@@ -39,9 +39,10 @@
 
 <!-- ABOUT -->
 ## About
-Read an in-depth analysis of this project [here](https://nthorn.com/articles/batch_raycaster).
 
 This is an old-school DDA raycaster made in Windows Batch. This project is notable for its functionality despite Batch's lack of floating point arithmetic or built-in trigonometric functions.
+
+Read an in-depth analysis of this project [here](https://nthorn.com/articles/batch_raycaster).
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
