@@ -41,9 +41,11 @@
 <!-- ABOUT -->
 ## About
 
-This is an old-school DDA raycaster made in Windows Batch. This project is notable for its functionality despite Batch's lack of floating point arithmetic or built-in trigonometric functions. Per Batch's limitations, frames take roughly 1.5 seconds to generate and movement is done via `set /p`.
+This is an old-school DDA raycaster made in Windows Batch. This project is notable for its functionality despite Batch's lack of floating point arithmetic or built-in trigonometric functions.
 
-Read an in-depth analysis of this project [here](https://nthorn.com/articles/batch_raycaster).
+Per Batch's limitations, frames take roughly 1.5 seconds to generate and movement is done via console-inputs (`set /p`).
+
+[Read an in-depth analysis of this project here](https://nthorn.com/articles/batch_raycaster).
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
