@@ -3,7 +3,9 @@ title Raycaster (Optimized)
 setlocal enableextensions EnableDelayedExpansion & chcp 65001 & set "debug_show_wall_type=false" & cls
 for /f %%a in ('copy /Z "%~dpf0" nul') do set "CR=%%a"
 set "first_start=true" & set /a "start_angle=270" & set /a "start_angle=!start_angle!+45" & set /a "scale=10000" & set /a "scale_half=!scale!/2" & set /a "corner_thresh=!scale!/8" & set /a "width=45" & set /a "height=30" & set "column_dists="
-set "d30=A...............▀..............B" & set "d29=A..............▄▀..............B" & set "d28=A.............▄##▀.............B" & set "d27=A.............▀##▄.............B" & set "d26=A............▄####▀............B" & set "d25=A............▀####▄............B" set "d24=A...........▄######▀...........B" & set "d23=A...........▀######▄...........B" & set "d22=A..........▄########▀..........B" & set "d21=A..........▀########▄..........B" & set "d20=A.........▄##########▀.........B" & set "d19=A.........▀##########▄.........B" & set "d18=A........▄############▀........B" & set "d17=A........▀############▄........B" & set "d16=A.......▄##############▀.......B" & set "d15=A.......▀##############▄.......B" & set "d14=A......▄################▀......B" & set "d13=A......▀################▄......B" & set "d12=A.....▄##################▀.....B" & set "d11=A.....▀##################▄.....B" & set "d10=A....▄####################▀....B" & set "d9=A....▀####################▄....B" & set "d8=A...▄######################▀...B" & set "d7=A...▀######################▄...B" & set "d6=A..▄########################▀..B" & set "d5=A..▀########################▄..B" & set "d4=A.▄##########################▀.B" & set "d3=A.▀##########################▄.B" & set "d2=A▄############################▀B" & set "d1=A▀############################▄B" & set "d1=A##############################B"
+set "d30=A...............-..............B" & set "d29=A.............._-..............B" & set "d28=A............._##-.............B" & set "d27=A.............-##_.............B" & set "d26=A............_####-............B" & set "d25=A............-####_............B" & set "d24=A..........._######-...........B" & set "d23=A...........-######_...........B" & set "d22=A.........._########-..........B" & set "d21=A..........-########_..........B" & set "d20=A........._##########-.........B" & set "d19=A.........-##########_.........B" & set "d18=A........_############-........B" & set "d17=A........-############_........B" & set "d16=A......._##############-.......B" & set "d15=A.......-##############_.......B" & set "d14=A......_################-......B" & set "d13=A......-################_......B" & set "d12=A....._##################-.....B" & set "d11=A.....-##################_.....B" & set "d10=A...._####################-....B" & set "d9=A....-####################_....B" & set "d8=A..._######################-...B" & set "d7=A...-######################_...B" & set "d6=A.._########################-..B" & set "d5=A..-########################_..B" & set "d4=A._##########################-.B" & set "d3=A.-##########################_.B" & set "d2=A_############################-B" & set "d1=A-############################_B" & set "d1=A##############################B"
+
+
 <nul set /p"=Generating Coordinates . . . !CR!"
 for /l %%y in (1, 1, !height!) do (for /l %%x in (1, 1, !width!) do (set "x%%xy%%y=." & set "column%%x=                                                                                         ."))
 call :read_map & goto input
@@ -33,8 +35,17 @@ call :read_map & goto input
     goto :eof
 :print_screen
     <nul set /p"=|                                                                                            !CR!" & set "screen=" & set "temp_whitespace=." & set "real_whitespace= "
-    for /l %%y in (1, 1, !height!) do (for /l %%x in (1, 1, !width!) do (set "column=!column%%x!" & set "pixel=!column%%x:~%%y,1!" & set "screen=!screen!!pixel!!pixel!")
-        echo: !screen:%temp_whitespace%=%real_whitespace%! & set screen=)
+    for /l %%y in (1, 1, !height!) do (
+        for /l %%x in (1, 1, !width!) do (
+            set column=!column%%x!
+            set pixel=!column%%x:~%%y,1!
+            set screen=!screen!!pixel!!pixel!
+        )
+        ::Print the screen row and replace the filler whitespace.
+        echo: !screen:%temp_whitespace%=%real_whitespace%!
+        set screen=
+
+    )
     goto :eof
 :input
     cls
@@ -50,6 +61,7 @@ call :read_map & goto input
     if !start_angle! LSS 0 (set /a "start_angle=360+!start_angle!")
     if !start_angle! GTR 359 (set /a "start_angle=!start_angle!-360")
     call :raycast cv & call :raycast & goto input
+
 :raycast
     set /a "vx=!px!*!scale!+!scale_half!" & set /a "vy=!py!*!scale!+!scale_half!" & set /a "screenx=0" & set /a "angle=!start_angle!" & set /a "tvx=!vx!" & set /a "tvy=!vy!" & set "loading_bar_amt="
     if "%1"=="cv" (set /a "angle=!start_angle!-45")
@@ -77,7 +89,8 @@ call :read_map & goto input
             if not "!mapx%ccx_high%y%checky%!"=="!mapx%checkx%y%checky%!" (set /a "corner_hit=!corner_hit!+1")
             if not "!mapx%checkx%y%ccy_low%!"=="!mapx%checkx%y%checky%!" (set /a "corner_hit=!corner_hit!+1")
             if not "!mapx%checkx%y%ccy_high%!"=="!mapx%checkx%y%checky%!" (set /a "corner_hit=!corner_hit!+1")
-            if "!mapx%checkx%y%checky%!"=="." (set mapx%checkx%y%checky%=') else if "!mapx%checkx%y%checky%!"=="@" (set filler=) else if "!mapx%checkx%y%checky%!"=="'" (set filler=) else ((if "!debug_show_wall_type!"=="true" (set walltype=!mapx%checkx%y%checky%!) else (set walltype=.))
+            if "!mapx%checkx%y%checky%!"=="." (set mapx%checkx%y%checky%=') else if "!mapx%checkx%y%checky%!"=="@" (set filler=) else if "!mapx%checkx%y%checky%!"=="'" (set filler=) else (
+                if "!debug_show_wall_type!"=="true" (set walltype=!mapx%checkx%y%checky%!) else (set walltype=.)
                 goto :draw_line
             )
             if "!priority!"=="x" (set /a "hx=!xdir!*!oct_angle!" & set /a "hy=!ydir!*45") else (set /a "hy=!ydir!*!oct_angle!" & set /a "hx=!xdir!*45")
@@ -103,6 +116,6 @@ call :read_map & goto input
     if !distance! LSS 1 (set /a "distance=1")
     if !distance! GTR !h_scaled! (set /a "distance=!h!")
     set view=!d%distance%!
-    if !corner_hit! LSS 2 (set "view=!view:#=%walltype:.= %!") else (set "view=!view:#=█!" & set "view=!view:█▄=██!" & set "view=!view:▀█=██!")
+    if !corner_hit! LSS 2 (set view=!view:#=%walltype:.= %!) else (set "view=!view:#_=##!" & set "view=!view:-#=##!")
     set column!screenx!=!view!
     goto :eof
