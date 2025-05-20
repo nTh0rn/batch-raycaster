@@ -12,7 +12,12 @@ over at https://www.nthorn.com/articles/batch-raycaster
 title Raycaster
 setlocal enableextensions EnableDelayedExpansion
 chcp 65001
+
+::Enable to show wall characters from the map
+set debug_show_wall_type=false
+
 cls
+
 ::Allow overprinting on same line for loading bars, etc
 for /f %%a in ('copy /Z "%~dpf0" nul') do set "CR=%%a"
 
@@ -34,34 +39,34 @@ set /a height=30
 set column_dists=
 
 ::All possible screen columns, saved as horizontal strings
-set d30=A···············▀··············B
-set d29=A··············▄▀··············B
-set d28=A·············▄##▀·············B
-set d27=A·············▀##▄·············B
-set d26=A············▄####▀············B
-set d25=A············▀####▄············B
-set d24=A···········▄######▀···········B
-set d23=A···········▀######▄···········B
-set d22=A··········▄########▀··········B
-set d21=A··········▀########▄··········B
-set d20=A·········▄##########▀·········B
-set d19=A·········▀##########▄·········B
-set d18=A········▄############▀········B
-set d17=A········▀############▄········B
-set d16=A·······▄##############▀·······B
-set d15=A·······▀##############▄·······B
-set d14=A······▄################▀······B
-set d13=A······▀################▄······B
-set d12=A·····▄##################▀·····B
-set d11=A·····▀##################▄·····B
-set d10=A····▄####################▀····B
-set  d9=A····▀####################▄····B
-set  d8=A···▄######################▀···B
-set  d7=A···▀######################▄···B
-set  d6=A··▄########################▀··B
-set  d5=A··▀########################▄··B
-set  d4=A·▄##########################▀·B
-set  d3=A·▀##########################▄·B
+set d30=A...............▀..............B
+set d29=A..............▄▀..............B
+set d28=A.............▄##▀.............B
+set d27=A.............▀##▄.............B
+set d26=A............▄####▀............B
+set d25=A............▀####▄............B
+set d24=A...........▄######▀...........B
+set d23=A...........▀######▄...........B
+set d22=A..........▄########▀..........B
+set d21=A..........▀########▄..........B
+set d20=A.........▄##########▀.........B
+set d19=A.........▀##########▄.........B
+set d18=A........▄############▀........B
+set d17=A........▀############▄........B
+set d16=A.......▄##############▀.......B
+set d15=A.......▀##############▄.......B
+set d14=A......▄################▀......B
+set d13=A......▀################▄......B
+set d12=A.....▄##################▀.....B
+set d11=A.....▀##################▄.....B
+set d10=A....▄####################▀....B
+set  d9=A....▀####################▄....B
+set  d8=A...▄######################▀...B
+set  d7=A...▀######################▄...B
+set  d6=A..▄########################▀..B
+set  d5=A..▀########################▄..B
+set  d4=A.▄##########################▀.B
+set  d3=A.▀##########################▄.B
 set  d2=A▄############################▀B
 set  d1=A▀############################▄B
 set  d1=A##############################B
@@ -72,8 +77,8 @@ set  d1=A##############################B
 ::Generate coordinates
 for /l %%y in (1, 1, !height!) do (
     for /l %%x in (1, 1, !width!) do (
-        set x%%xy%%y=·
-        set column%%x=                                                                                         ·
+        set x%%xy%%y=.
+        set column%%x=                                                                                         .
     )
 )
 
@@ -114,7 +119,7 @@ goto input
         ::Store map
         set mapx%x%y%y%=!char!
         ::Store player position
-        if "!char!"=="P" (
+        if "!char!"=="@" (
             set pcord=x%x%y%y%
             set /a px=!x!
             set /a py=!y!
@@ -131,11 +136,28 @@ goto input
     ::Iterate through the coordinates.
     for /l %%y in (0, 1, 10) do (
         for /l %%x in (0, 1, 10) do (
-            set screen=!screen!!mapx%%xy%%y!
+
+            set use_real_char=false
+            if "!debug_show_wall_type!"=="true" (
+                set use_real_char=true
+            ) else if "!mapx%%xy%%y!"=="'" (
+                set use_real_char=true
+            ) else if "!mapx%%xy%%y!"=="@" (
+                set use_real_char=true
+            ) else if "!mapx%%xy%%y!"=="." (
+                set use_real_char=true
+            )
+
+            if "!use_real_char!"=="true" (
+                set screen=!screen!!mapx%%xy%%y!
+                set use_real_char=false
+            ) else (
+                set screen=!screen!#
+            )
 
             ::Refresh the FOV markers
-            if "!mapx%%xy%%y!"=="#" (
-                set mapx%%xy%%y=·
+            if "!mapx%%xy%%y!"=="'" (
+                set mapx%%xy%%y=.
             )
 
         )
@@ -143,7 +165,12 @@ goto input
     )
 
     ::Print the map
-    for %%f in (%screen%) do @echo                                         %%f
+    for %%f in (%screen%) do (
+        set line=%%f
+        set line=!line:.= !
+        set line=!line:'=.!
+        @echo                                         !line!
+    )
     goto :eof
 
 ::Print the screen from the x and y coordinate variables
@@ -154,7 +181,7 @@ goto input
 
     set screen=
     ::Used to replace the filler whitespace with true whitespace
-    set "temp_whitespace=·"
+    set "temp_whitespace=."
     set "real_whitespace= "
 
     ::Iterate through screen coordinates
@@ -173,6 +200,8 @@ goto input
 
 
 :input
+    cls
+
     ::Check if its the first startup
     if NOT "%first_start%"=="true" (
         call :print_screen
@@ -186,7 +215,7 @@ goto input
         goto input
     )
 
-    set mapx!px!y!py!=·
+    set mapx!px!y!py!=.
     if "%move%"=="w" (
         set /a py=!py!-1
     ) else if "%move%"=="a" (
@@ -222,7 +251,7 @@ goto input
     )
 
     ::Update where the player is
-    set mapx!px!y!py!=P
+    set mapx!px!y!py!=@
 
     ::Keep angle within bounds
     if !start_angle! LSS 0 (
@@ -372,7 +401,7 @@ goto input
             ::Take the square root of the radicand. Babylonian Method used.
             set /a toberooted=!tnx!+!tny!
             set /a high=2
-            for /l %%x in (1, 1, 30) do (
+            for /l %%x in (1, 1, 20) do (
                 set /a low=!toberooted!/!high!
                 set /a high=!low!+!high!
                 set /a high=!high!/2
@@ -444,14 +473,18 @@ goto input
 
             ::Check if the current cell is empty or not.
             ::If it is, then draw that column to the screen.
-            if "!mapx%checkx%y%checky%!"=="·" (
-                set mapx%checkx%y%checky%=#
-            ) else if "!mapx%checkx%y%checky%!"=="P" (
+            if "!mapx%checkx%y%checky%!"=="." (
+                set mapx%checkx%y%checky%='
+            ) else if "!mapx%checkx%y%checky%!"=="@" (
                 rem
-            ) else if "!mapx%checkx%y%checky%!"=="#" (
+            ) else if "!mapx%checkx%y%checky%!"=="'" (
                 rem
             ) else (
-                set walltype=!mapx%checkx%y%checky%!
+                if "!debug_show_wall_type!"=="true" (
+                    set walltype=!mapx%checkx%y%checky%!
+                ) else (
+                    set walltype=.
+                )
                 goto :draw_line
             )
             ::The base vector for this ray, hx and hy
@@ -556,7 +589,7 @@ goto input
     ::Replace wall-characters with the associated character on
     ::the map or with the corner-defining character.
     if !corner_hit! LSS 2 (
-        set view=!view:#=%walltype%!
+        set view=!view:#=%walltype:.= %!
     ) else (
         set view=!view:#=█!
         set view=!view:█▄=██!
