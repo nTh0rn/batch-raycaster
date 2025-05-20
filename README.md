@@ -30,7 +30,12 @@
         <li><a href="#installation">Installation</a></li>
       </ul>
     </li>
-    <li><a href="#usage">Usage</a></li>
+    <li>
+    <a href="#usage">Usage</a>
+    <ul>
+        <li><a href="#troubleshooting">Troubleshooting</a></li>
+      </ul>
+    </li>
     <li><a href="#license">License</a></li>
     <li><a href="#contact">Contact</a></li>
   </ol>
@@ -67,14 +72,18 @@ Designed exclusively for Windows. Functionality within Linux/macOS virtual envir
 
 <!-- USAGE -->
 ## Usage
-1. Modify [`map.txt`](https://github.com/nTh0rn/batch-raycaster/blob/master/map.txt) to contain the map of your choice. By default, the character '`·`' middle-dot, `U+00B7`, denotes empty cells.
-2. Double click [`raycaster.bat`](https://github.com/nTh0rn/batch-raycaster/blob/master/raycaster.bat) or execute from Command Prompt.
+1. Modify [`map.txt`](map.txt) to contain the map of your choice. By default, the character '`·`' middle-dot, `U+00B7`, denotes empty cells.
+2. Double click [`raycaster.bat`](raycaster.bat) or execute from Command Prompt.
 3. Movement/aiming commands relative to the top-down map\
    3.1 `w`=north, `a`=west, `s`=south, `d`=east\
    3.2 `z #`=aim left, `x #`=aim right, where `#` is the number of degrees to turn.
 
 <b>NOTE:</b>
-Run [`optimized/raycaster_optimized.bat`](https://github.com/nTh0rn/batch-raycaster/blob/main/optimized/raycaster_optimized.bat) instead of [`raycaster.bat`](https://github.com/nTh0rn/batch-raycaster/blob/master/raycaster.bat) for greatly increased performance at the cost of unreadable code.
+Run [`optimized/raycaster-optimized.bat`](raycaster-optimized.bat) instead of [`raycaster.bat`](raycaster.bat) for greatly increased performance at the cost of unreadable code.
+
+### Troubleshooting
+
+If your Windows' language isn't set to English, you may encounter issues. In which case, try out the versions within [no-unicode/](./no-unicode/).
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
