@@ -1,0 +1,10 @@
+ABCDEFGABC
+A..@.....D
+GFC.B.CD.E
+F.....E..F
+E.H.L.FR.G
+D.IJK....A
+C.....G..B
+B.A.C.H.JC
+A.....I..X
+GFEDCBAGFE
