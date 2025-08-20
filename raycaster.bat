@@ -5,7 +5,7 @@ Written by Nikolas Thornton
 https://github.com/nTh0rn/batch-raycaster
 
 I wrote about all the intricacies of this project on my website
-over at https://www.nthorn.com/articles/batch-raycaster
+over at https://www.nthorn.com/articles/batch_raycaster
 ###############################################################
 :SKIP_COMMENTS
 @echo off
