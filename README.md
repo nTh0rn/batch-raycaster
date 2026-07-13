@@ -91,7 +91,7 @@ Designed for Windows 10 Command Prompt (conhost or Terminal), non-legacy mode, C
 <!-- LICENSE -->
 ## License
 
-Distributed under the MIT License. See `LICENSE.txt` for more information.
+Distributed under the MIT License. See [LICENSE.txt](/LICENSE.txt) for more information.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
